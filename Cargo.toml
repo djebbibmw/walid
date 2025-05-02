@@ -2,3 +2,74 @@
 name = "my-substrate-chain"
 version = "0.1.0"
 edition = "2021"
+
+[dependencies]
+# Substrate core runtime dependencies
+substrate-sdk = { version = "4.0", features = ["std"] }  # حزمة Substrate الأساسية لبناء runtime
+pallet-balances = { version = "3.0", default-features = false }  # لتحكم في رصيد الحسابات
+pallet-timestamp = { version = "3.0" }  # التحكم في الوقت الزمني داخل الشبكة
+pallet-system = { version = "3.0" }  # لإدارة النظام والعمليات الأساسية
+
+# حزم WebAssembly لتفعيل البيئة
+wasm-bindgen = "0.2"  # يدعم WebAssembly
+wasm32-unknown-unknown = { version = "0.2", optional = true }  # هدف WebAssembly
+substrate-wasm-builder = "0.10"  # لبناء WASM من Substrate
+
+# إضافة دعم لـ `serde` لتسلسل البيانات
+serde = { version = "1.0", features = ["derive"] }
+
+# حزمة تسلسل البيانات مثل JSON وغيرها
+serde_json = "1.0"
+
+# حزم عامة لإدارة الحسابات والعمليات الحسابية
+num-bigint = "0.4"  # دعم الأعداد الكبيرة
+num-traits = "0.2"  # دعم العمليات الحسابية على الأعداد الكبيرة
+
+# دعم تخزين البيانات بشكل غير متزامن (Asynchronous)
+async-std = "1.10"  # لعمليات غير متزامنة (async)
+tokio = { version = "1.0", features = ["full"] }  # لاستعمال مكتبة tokio في العمليات غير المتزامنة
+
+# تدعيم مكتبة `log` لتسجيل الأحداث (logging)
+log = "0.4"  # دعم تسجيل الأنشطة في التطبيق
+
+# حزمة `hex` لتحويل البيانات الثنائية إلى تمثيل hexadecimal
+hex = "0.4"  # لتحويل البيانات الثنائية إلى تمثيل Hex
+
+# حزمة `thiserror` لإنشاء أخطاء مخصصة
+thiserror = "1.0"  # لإنشاء أخطاء مخصصة بسهولة
+
+# حزمة `frame-system` لبناء سلسلة Substrate
+frame-support = { version = "3.0", features = ["std"] }  # دعم Frame (نظام المحاكاة)
+
+# حزمة `pallet-template` أو أي pallet آخر مخصص لديك
+pallet-template = { path = "../pallets/template" }  # إذا كان لديك pallet مخصص
+
+# حزمة `sp-runtime` هي حزمة أساسية في Substrate لبناء الـ runtime
+sp-runtime = { version = "4.0", features = ["std"] }
+
+# حزمة `sp-core` لاستخدام الوظائف الأساسية (core) في Substrate
+sp-core = { version = "4.0" }
+
+# إضافة بعض المكتبات المستخدمة في مشروع Substrate مثل JSON RPC
+jsonrpc-core = "17.0"  # دعم الـ JSON RPC للاتصال بين النود
+
+# حزمة `pallet-transaction-payment` لإدارة مدفوعات المعاملات
+pallet-transaction-payment = { version = "3.0" }
+
+# مكتبة `substrate-frame-system` لإنشاء النظام الرئيسي للـ blockchain
+frame-system = { version = "3.0", features = ["std"] }
+
+# إضافة حزم تدعيم لـ testing والـ testing frameworks
+#[dev-dependencies]
+#some-testing-library = "1.0"  # (اختياري) إذا كنت ترغب في استخدام اختبارات مطورة
+
+[profile.dev]
+opt-level = 0  # مستوى التحسين (اختياري) للإصدار التجريبي
+debug = true  # تفعيل التصحيح في الإصدار التجريبي
+split-debuginfo = "unpacked"  # تصحيح المعلومات بشكل غير مضغوط
+
+[profile.release]
+opt-level = 3  # أعلى مستوى من التحسين في الإصدار النهائي
+debug = false  # تعطيل التصحيح في الإصدار النهائي
+split-debuginfo = "packed"  # تصحيح المعلومات بشكل مضغوط
+lto = true  # تفعيل "Link Time Optimization" لتحسين الأداء
