@@ -1,6 +1,81 @@
 [package]
-name = "pallet-wathiq"
+name = "my-substrate-chain"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+authors = ["اسمك <email@example.com>"]
+license = "MIT"
+description = "سلسلة بلوكشين مخصصة باستخدام Substrate"
+repository = "https://github.com/djebbibmw/walid"
+readme = "README.md"
 
 [dependencies]
+# Substrate core
+substrate-sdk = { version = "4.0", optional = true }
+
+frame-support = { version = "3.0", default-features = false, features = ["std"] }
+frame-system = { version = "3.0", default-features = false, features = ["std"] }
+sp-runtime = { version = "4.0", default-features = false, features = ["std"] }
+sp-core = { version = "4.0", default-features = false, features = ["std"] }
+
+# Pallets
+pallet-system = { version = "3.0", default-features = false, features = ["std"] }
+pallet-balances = { version = "3.0", default-features = false, features = ["std"] }
+pallet-timestamp = { version = "3.0", default-features = false, features = ["std"] }
+pallet-transaction-payment = { version = "3.0", default-features = false, features = ["std"] }
+pallet-template = { path = "../pallets/template", default-features = false, features = ["std"] }
+
+# WASM & tools
+substrate-wasm-builder = "0.10"
+wasm-bindgen = "0.2"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Utility
+log = "0.4"
+hex = "0.4"
+thiserror = "1.0"
+num-bigint = "0.4"
+num-traits = "0.2"
+
+# Async
+tokio = { version = "1.0", features = ["full"] }
+async-std = "1.10"
+
+# JSON RPC (للتواصل مع العقدة)
+jsonrpc-core = "17.0"
+
+[build-dependencies]
+substrate-wasm-builder = "0.10"
+
+[dev-dependencies]
+# يمكنك إضافة مكتبات اختبارات مثل:
+# assert_cmd = "2.0"
+# predicates = "3.0"
+
+[features]
+default = ["std"]
+std = [
+    "frame-support/std",
+    "frame-system/std",
+    "sp-runtime/std",
+    "sp-core/std",
+    "pallet-system/std",
+    "pallet-balances/std",
+    "pallet-timestamp/std",
+    "pallet-transaction-payment/std",
+    "pallet-template/std"
+]
+wasm = []
+
+[profile.dev]
+opt-level = 0
+debug = true
+split-debuginfo = "unpacked"
+
+[profile.release]
+opt-level = 3
+debug = false
+lto = true
+split-debuginfo = "packed"
