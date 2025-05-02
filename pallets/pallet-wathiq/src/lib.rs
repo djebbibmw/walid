@@ -5,58 +5,72 @@ pub use pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
     use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
-    use frame_system::{self as system, pallet_prelude::*};
+    use frame_system::pallet_prelude::*;
+    use frame_support::sp_runtime::traits::CheckedSub;
+    use sp_std::vec::Vec;
 
-    // التعريف بالسمعة والعملات
     #[pallet::pallet]
     pub struct Pallet<T>(_);
 
     #[pallet::config]
     pub trait Config: frame_system::Config {}
 
-    // تخزين السمعة للمستخدم
+    // تخزين البيانات
+    #[pallet::storage]
+    #[pallet::getter(fn get_balance)]
+    pub(super) type Balances<T: Config> = StorageMap<_, Twox64Concat, T::AccountId, u64, OptionQuery>;
+
+    // تعريف الأحداث
+    #[pallet::event]
+    pub enum Event<T: Config> {
+        BalanceSet(T::AccountId, u64),
+        HelloMessage(T::AccountId),
+    }
+
+    // تنفيذ الدوال
     #[pallet::call]
     impl<T: Config> Pallet<T> {
-        #[pallet::call_index(0)]
+        // دالة say_hello
         #[pallet::weight(10_000)]
-        pub fn issue_token(origin: OriginFor<T>, amount: u32) -> DispatchResult {
-            let who = ensure_signed(origin)?;
+        pub fn say_hello(origin: OriginFor<T>) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+            log::info!("تم تنفيذ نداء 'say_hello' من {:?}", sender);
+            Self::deposit_event(Event::<T>::HelloMessage(sender));
+            Ok(())
+        }
 
-            // استرجاع السمعة الخاصة بالمستخدم
-            let reputation = system::Pallet::<T>::account_nonce(&who);
+        // دالة لتخزين رصيد المستخدم
+        #[pallet::weight(10_000)]
+        pub fn set_balance(origin: OriginFor<T>, balance: u64) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+            ensure!(balance >= 0, "الرصيد يجب أن يكون عددًا موجبًا");
 
-            // سك العملة بناءً على السمعة
-            let token_amount = reputation * amount;
+            // تخزين الرصيد للمستخدم
+            Balances::<T>::insert(sender.clone(), balance);
+            log::info!("تم تحديث رصيد المستخدم: {:?}", sender);
 
-            // إرسال التوكن للمستخدم
-            T::Currency::deposit_creating(&who, token_amount.into());
-
-            // إطلاق حدث سك العملة
-            Self::deposit_event(Event::TokensIssued(who, token_amount));
+            // نشر الحدث
+            Self::deposit_event(Event::<T>::BalanceSet(sender, balance));
 
             Ok(())
         }
 
-        #[pallet::call_index(1)]
+        // دالة لاسترجاع رصيد المستخدم
         #[pallet::weight(10_000)]
-        pub fn transfer_tokens(origin: OriginFor<T>, to: T::AccountId, amount: u32) -> DispatchResult {
-            let who = ensure_signed(origin)?;
-
-            // التأكد من أن المستخدم لديه رصيد كافٍ
-            T::Currency::transfer(&who, &to, amount.into(), frame_support::traits::ExistenceRequirement::AllowDeath)?;
-
-            // إطلاق حدث تحويل التوكن
-            Self::deposit_event(Event::TokensTransferred(who, to, amount));
-
+        pub fn get_balance(origin: OriginFor<T>) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+            match Balances::<T>::get(sender.clone()) {
+                Some(balance) => log::info!("رصيد المستخدم {:?}: {:?}", sender, balance),
+                None => log::info!("المستخدم {:?} ليس لديه رصيد", sender),
+            }
             Ok(())
         }
     }
 
-    // الأحداث التي تُسجل عند كل عملية
-    #[pallet::event]
-    #[pallet::generate_store(pub(super) trait Store)]
-    pub enum Event<T: Config> {
-        TokensIssued(T::AccountId, u32),
-        TokensTransferred(T::AccountId, T::AccountId, u32),
+    // تخصيص الصلاحيات
+    #[pallet::call]
+    pub fn ensure_root(origin: OriginFor<T>) -> DispatchResult {
+        let _who = ensure_root(origin)?;
+        Ok(())
     }
 }
